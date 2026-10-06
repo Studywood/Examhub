@@ -1,0 +1,40 @@
+<!-- GITHUB SYNC OVERRIDE -->
+  <button id="githubDownloadBtn" onclick="downloadJSON()" style="display:none; position:fixed; bottom:20px; right:20px; z-index:99999; background:#18181b; color:white; padding:12px 20px; border-radius:12px; font-family:sans-serif; font-size:14px; font-weight:bold; cursor:pointer; border:1px solid #3f3f46; box-shadow:0 10px 15px -3px rgba(0,0,0,0.2);">
+    ⬇️ Download subjects.json
+  </button>
+
+  <script>
+    const sessionData = localStorage.getItem("abhi_v6_session");
+    const isAdmin = sessionData && sessionData.includes('"role":"admin"');
+
+    if (isAdmin) {
+        document.getElementById('githubDownloadBtn').style.display = 'block';
+    } else {
+        const cacheBuster = new Date().getTime();
+        fetch("https://raw.githubusercontent.com/Studywood/Examhub/main/subjects.json?v=" + cacheBuster, {cache: "no-store"})
+          .then(res => {
+            if(!res.ok) throw new Error("No file found on GitHub");
+            return res.text(); 
+          })
+          .then(githubData => {
+            const localData = localStorage.getItem("abhi_v6_tree");
+            if (githubData && githubData !== localData) {
+              localStorage.setItem("abhi_v6_tree", githubData);
+              window.location.reload();
+            }
+          })
+          .catch(err => console.log("GitHub Sync:", err));
+    }
+
+    function downloadJSON() {
+      const data = localStorage.getItem("abhi_v6_tree");
+      if(!data) return alert("No questions found!");
+      const blob = new Blob([data], {type: "application/json"});
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = "subjects.json";
+      link.click();
+      alert("Downloaded! Now upload subjects.json to GitHub.");
+    }
+  </script>
+  <!-- END GITHUB SYNC OVERRIDE -->
